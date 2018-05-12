@@ -43,12 +43,6 @@ def train(model, n_epochs, labels, images, batch_size, train_test_ratio):
 
     train_labels, train_images, test_labels, test_images, valid_labels, valid_images = train_test_split(labels, images, train_test_ratio)
 
-    test_size = len(test_labels)
-    test_targets, test_images = create_train_batch(test_size, test_labels, test_images, False)
-
-    valid_size = len(valid_labels)
-    valid_targets, valid_images = create_train_batch(valid_size, valid_labels, valid_images, False)
-
     for epoch in range(n_epochs):
 
         train_targets, sample_images = create_train_batch(batch_size, train_labels, train_images)
@@ -56,11 +50,15 @@ def train(model, n_epochs, labels, images, batch_size, train_test_ratio):
         train_cost, train_ler = model.fit(train_targets, sample_images)
         train_ler = train_ler * batch_size
 
-        test_cost, test_ler = model.validate(test_targets, test_images)
-        test_ler = test_ler * test_size
+        test_targets, test_sample_images = create_train_batch(batch_size, test_labels, test_images, False)
 
-        valid_cost, valid_ler = model.validate(valid_targets, valid_images, 'valid')
-        valid_ler = valid_ler * valid_size
+        test_cost, test_ler = model.validate(test_targets, test_sample_images)
+        test_ler = test_ler * batch_size
+
+        valid_targets, valid_sample_images = create_train_batch(batch_size, valid_labels, valid_images, False)
+
+        valid_cost, valid_ler = model.validate(valid_targets, valid_sample_images, 'valid')
+        valid_ler = valid_ler * batch_size
 
         log = '[Epoch {}] train_cost: {:.3f}, train_ler: {:.3f}, test_cost: {:.3f}, test_ler: {:.3f}, val_cost: {:.3f}, val_ler: {:.3f}'
         print(log.format(epoch, train_cost, train_ler, test_cost, test_ler, valid_cost, valid_ler))

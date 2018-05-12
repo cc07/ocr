@@ -22,17 +22,17 @@ def resize_image(image, new_h):
 
     return cv2.resize(image, (new_w, new_h))
 
-def create_train_batch(n_batch_size, labels, images, is_training=True, dtype=np.int64):
+def create_train_batch(batch_size, labels, images, is_training=True, dtype=np.int64):
     indices = []
     values = []
 
-    sample_index = np.random.choice(len(images) - 1, size=n_batch_size)
+    sample_index = np.random.choice(len(images) - 1, size=batch_size)
     sample_images = []
 
     x_max = 0
     y_max = 0
 
-    for key, index in zip(sample_index, range(n_batch_size)):
+    for key, index in zip(sample_index, range(batch_size)):
         sample = labels[key]
         length = len(sample)
         label = sample
@@ -52,7 +52,7 @@ def create_train_batch(n_batch_size, labels, images, is_training=True, dtype=np.
 
     indices = np.array(indices, dtype=np.int64)
     values = np.array(values, dtype=dtype)
-    shape = np.array([n_batch_size, np.asarray(indices).max(0)[1] + 1], dtype=np.int64)
+    shape = np.array([batch_size, np.asarray(indices).max(0)[1] + 1], dtype=np.int64)
 
     targets = tf.SparseTensorValue(indices=indices, values=values, dense_shape=shape)
     sample_images = add_padding_to_images(x_max, y_max, sample_images)
