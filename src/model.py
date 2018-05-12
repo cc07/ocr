@@ -84,7 +84,11 @@ class CtcOcr:
             conv4 = self._default_conv_layer(conv3, self.n_filters * 4)
             conv4 = self._default_max_pool(conv4)
 
-        return conv4
+        with tf.variable_scope('conv5'):
+            conv5 = self._default_conv_layer(conv4, self.n_filters * 5)
+            conv5 = self._default_max_pool(conv5)
+
+        return conv5
 
     def _build_rnn_cells(self):
         cells = []
@@ -115,17 +119,10 @@ class CtcOcr:
                                              sequence_length=seq_len,
                                              ))
     def _build_summary(self):
-        train_cost = tf.summary.scalar('cost', self.cost)
-        test_cost = tf.summary.scalar('cost', self.cost)
-        valid_cost = tf.summary.scalar('cost', self.cost)
+        cost = tf.summary.scalar('cost', self.cost)
+        ler = tf.summary.scalar('ler', self.ler)
 
-        train_ler = tf.summary.scalar('ler', self.ler)
-        test_ler = tf.summary.scalar('ler', self.ler)
-        valid_ler = tf.summary.scalar('ler', self.ler)
-
-        self.train_summary = tf.summary.merge([train_cost, train_ler])
-        self.test_summary = tf.summary.merge([test_cost, test_ler])
-        self.valid_summary = tf.summary.merge([valid_cost, valid_ler])
+        self.merged_summary = tf.summary.merge([cost, ler])
 
     def _build_net(self):
         self.inputs = tf.placeholder(tf.float32, [None, None, self.n_features, self.n_channels])
@@ -138,8 +135,8 @@ class CtcOcr:
 
         _, feature_w, feature_h, _ = conv.get_shape().as_list()
 
-        conv = tf.reshape(conv, [shape[0], -1, feature_h * self.n_filters * 4])
-        seq_len = tf.fill([shape[0]], shape[1] // 16)
+        conv = tf.reshape(conv, [shape[0], -1, feature_h * self.n_filters * 5])
+        seq_len = tf.fill([shape[0]], shape[1] // 32)
 
         rnn_outputs = self._build_rnn_layer(conv, seq_len)
 
@@ -169,7 +166,7 @@ class CtcOcr:
         cost, ler, summary, global_step, _ = self.sess.run([
                                 self.cost,
                                 self.ler,
-                                self.train_summary,
+                                self.merged_summary,
                                 self.global_step,
                                 self.train_op,
                              ],
@@ -186,7 +183,7 @@ class CtcOcr:
         cost, ler, summary, global_step = self.sess.run([
                                 self.cost,
                                 self.ler,
-                                self.test_summary if dataset == 'test' else self.valid_summary,
+                                self.merged_summary,
                                 self.global_step,
                              ],
                              feed_dict={
