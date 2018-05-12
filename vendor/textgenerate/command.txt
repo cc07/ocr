@@ -1,0 +1,2 @@
+python run.py -w 1 -k 30 -rk -na 1 -c 100 
+#create 100 skew image(with 0-30degree) with formatted name and each image contain only one number/word
