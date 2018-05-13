@@ -36,9 +36,11 @@ class CtcOcr:
             self._build_net()
             self.sess = sess if not sess is None else tf.Session(graph=graph)
             self.saver = tf.train.Saver()
-            self.train_summary_writer = tf.summary.FileWriter('{}/train'.format(self.log_path), graph)
-            self.test_summary_writer = tf.summary.FileWriter('{}/test'.format(self.log_path), graph)
-            self.valid_summary_writer = tf.summary.FileWriter('{}/valid'.format(self.log_path), graph)
+
+            self.summary_writer = {}
+
+            for stage in ['train', 'test', 'valid']:
+                self.summary_writer[stage] = tf.summary.FileWriter('{}/{}'.format(self.log_path, stage), graph)
 
             self.sess.run(tf.global_variables_initializer())
 
@@ -154,7 +156,7 @@ class CtcOcr:
 
         with tf.variable_scope('concat'):
             reduction = tf.concat([conv1, conv2, conv3, conv4], axis=3)
-            reduction = self._default_conv_layer(reduction, n_filters * 8, (1, 1))
+            reduction = self._default_conv_layer(reduction, n_filters * 8, (1, 1), activation=None)
 
         return reduction
 
@@ -218,7 +220,10 @@ class CtcOcr:
                 with tf.variable_scope('inception_c_{}'.format(i)):
                     inception_c = self._build_inception_c_layer(inception_c, self.n_filters)
 
-        return inception_c
+        with tf.variable_scope('pooling'):
+            pooling = self._default_avg_pool(inception_c)
+
+        return pooling
 
     def _build_rnn_cells(self):
         cells = []
@@ -302,11 +307,11 @@ class CtcOcr:
                                 self.inputs: inputs,
                              })
 
-        self.train_summary_writer.add_summary(summary, global_step)
+        self.summary_writer['train'].add_summary(summary, global_step)
 
         return cost, ler
 
-    def validate(self, targets, inputs, dataset='test'):
+    def validate(self, targets, inputs, stage='test'):
         cost, ler, summary, global_step = self.sess.run([
                                 self.cost,
                                 self.ler,
@@ -318,8 +323,7 @@ class CtcOcr:
                                 self.inputs: inputs,
                              })
 
-        summary_writer = self.test_summary_writer if dataset == 'test' else self.valid_summary_writer
-        summary_writer.add_summary(summary, global_step)
+        self.summary_writer[stage].add_summary(summary, global_step)
 
         return cost, ler
 
