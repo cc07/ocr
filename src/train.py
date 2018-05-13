@@ -29,13 +29,14 @@ def load_data(img_path, height=64):
             img = np.transpose(img, (1, 2, 0))
             img = [normalize(layer) for layer in img]
             img = np.transpose(img, (2, 0, 1))
-            images.append(img)
 
             label = re.match(r'.*[_](.*)\.jpg', f).group(1)
             label = label.replace('-', ' ')
+
+            images.append(img)
             labels.append(label)
 
-    print('Loading images...completed')
+    print('Loading images...completed, total: {}/{} images'.format(len(images), len(labels)))
 
     return labels, images
 

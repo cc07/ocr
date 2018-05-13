@@ -41,8 +41,8 @@ def create_train_batch(batch_size, labels, images, is_training=True, dtype=np.in
         x_max = max(x_max, img.shape[0])
         y_max = max(y_max, img.shape[1])
 
-        if is_training:
-            img = salt_pepper(img)
+        # if is_training:
+        #     img = salt_pepper(img)
 
         sample_images.append(img)
 
