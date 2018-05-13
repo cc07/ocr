@@ -9,7 +9,7 @@ flags.DEFINE_string('img_path', '../data/images', 'Path location of images for t
 flags.DEFINE_string('log_path', '../data/log', 'Log location for model stats')
 flags.DEFINE_string('save_path', '../data/sess', 'Save location for model session')
 flags.DEFINE_boolean('remove_log', True, 'Remove log on start')
-flags.DEFINE_integer('height', 64, 'Images height')
+flags.DEFINE_integer('height', 32, 'Images height')
 flags.DEFINE_integer('n_channels', 3, 'Images channels')
 flags.DEFINE_integer('first_index', first_index, 'First index of encoded character')
 flags.DEFINE_integer('last_index', last_index, 'Last index of encoded character')
