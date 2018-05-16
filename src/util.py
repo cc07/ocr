@@ -10,6 +10,14 @@ def normalize(layer):
 def denormalize(layer):
     return layer * 255 + 0.5
 
+def preprocess_image(img, height):
+    img = resize_image(img, height)
+
+    img = np.transpose(img, (1, 2, 0))
+    img = [normalize(layer) for layer in img]
+
+    return np.transpose(img, (2, 0, 1))
+
 def restore_image(normalized_img):
     img = np.transpose(normalized_img, (1, 2, 0))
     img = [denormalize(layer) for layer in img]
@@ -75,7 +83,7 @@ def add_padding_to_images(x_max, y_max, images):
                                 (top_pad, bottom_pad),
                                 (0, 0)),
                      mode='constant',
-                     constant_values=0)
+                     constant_values=-1)
 
         img = np.transpose(img.reshape((x_max, y_max, FLAGS.n_channels)), [1, 0, 2])
         output.append(img)

@@ -8,7 +8,7 @@ from os.path import isfile, join
 
 from model import CtcOcr
 from config import FLAGS
-from util import normalize, denormalize, restore_image, create_train_batch, resize_image, train_test_split
+from util import normalize, denormalize, preprocess_image, restore_image, create_train_batch, resize_image, train_test_split
 
 def load_data(img_path, height=64):
     labels = []
@@ -22,16 +22,10 @@ def load_data(img_path, height=64):
 
         if isfile(path) and 'jpg' in path:
             img = cv2.imread(path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img = resize_image(img, height)
-
-            img = np.asarray(img)
-            img = np.transpose(img, (1, 2, 0))
-            img = [normalize(layer) for layer in img]
-            img = np.transpose(img, (2, 0, 1))
+            img = preprocess_image(img, height)
 
             label = re.match(r'.*[_](.*)\.jpg', f).group(1)
-            label = label.replace('-', ' ')
+            # label = label.replace('-', ' ')
 
             images.append(img)
             labels.append(label)
@@ -51,18 +45,19 @@ def train(model, n_epochs, labels, images, batch_size, train_test_ratio):
         train_cost, train_ler = model.fit(train_targets, sample_images)
         train_ler = train_ler * batch_size
 
-        test_targets, test_sample_images = create_train_batch(batch_size, test_labels, test_images, False)
-
-        test_cost, test_ler = model.validate(test_targets, test_sample_images)
-        test_ler = test_ler * batch_size
-
-        valid_targets, valid_sample_images = create_train_batch(batch_size, valid_labels, valid_images, False)
-
-        valid_cost, valid_ler = model.validate(valid_targets, valid_sample_images, 'valid')
-        valid_ler = valid_ler * batch_size
+        # test_targets, test_sample_images = create_train_batch(batch_size, test_labels, test_images, False)
+        #
+        # test_cost, test_ler = model.validate(test_targets, test_sample_images)
+        # test_ler = test_ler * batch_size
+        #
+        # valid_targets, valid_sample_images = create_train_batch(batch_size, valid_labels, valid_images, False)
+        #
+        # valid_cost, valid_ler = model.validate(valid_targets, valid_sample_images, 'valid')
+        # valid_ler = valid_ler * batch_size
 
         log = '[Epoch {}] train_cost: {:.3f}, train_ler: {:.3f}, test_cost: {:.3f}, test_ler: {:.3f}, val_cost: {:.3f}, val_ler: {:.3f}'
-        print(log.format(epoch, train_cost, train_ler, test_cost, test_ler, valid_cost, valid_ler))
+        # print(log.format(epoch, train_cost, train_ler, test_cost, test_ler, valid_cost, valid_ler))
+        print(log.format(epoch, train_cost, train_ler, 0, 0, 0, 0))
 
         if train_cost < 0:
             model.save()
