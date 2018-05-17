@@ -75,7 +75,7 @@ def add_padding_to_images(x_max, y_max, images):
                                 (top_pad, bottom_pad),
                                 (0, 0)),
                      mode='constant',
-                     constant_values=0)
+                     constant_values=-1)
 
         img = np.transpose(img.reshape((x_max, y_max, FLAGS.n_channels)), [1, 0, 2])
         output.append(img)
