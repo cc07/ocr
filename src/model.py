@@ -53,7 +53,7 @@ class CtcOcr:
     def _default_b_init(self):
         return tf.constant_initializer(0.1)
 
-    def _default_conv_layer(self, inputs, n_filters, kernel_size, w_init, b_init, activation=tf.nn.elu, padding='VALID'):
+    def _default_conv_layer(self, inputs, n_filters, kernel_size, w_init, b_init, batch_norm=False, activation=tf.nn.elu, padding='VALID'):
         conv = tf.layers.conv2d(
             inputs,
             n_filters,
@@ -64,7 +64,8 @@ class CtcOcr:
             padding=padding,
         )
 
-        conv = tf.contrib.layers.batch_norm(conv)
+        if batch_norm:
+            conv = tf.contrib.layers.batch_norm(conv)
 
         if not activation is None:
             conv = activation(conv)
@@ -90,12 +91,9 @@ class CtcOcr:
             conv1 = self._default_conv_layer(inputs, n_filters, (3, 3), w_init, b_init, padding='SAME')
 
         with tf.variable_scope('conv2'):
-            conv2 = self._default_conv_layer(conv1, n_filters, (3, 3), w_init, b_init, padding='SAME', activation=None)
+            conv2 = self._default_conv_layer(conv1, n_filters, (3, 3), w_init, b_init, padding='SAME', batch_norm=True)
 
-        residual = tf.contrib.layers.batch_norm(conv2)
-        residual = tf.nn.elu(residual)
-
-        return residual + inputs
+        return conv2 + inputs
 
     def _build_conv_layer(self, inputs):
         w_init = self._default_w_init()
@@ -103,8 +101,7 @@ class CtcOcr:
 
         with tf.variable_scope('stem'):
             stem = self._default_conv_layer(inputs, self.n_filters, (3, 3), w_init, b_init)
-            stem = self._default_conv_layer(stem, self.n_filters, (3, 3), w_init, b_init)
-            stem = self._default_max_pool(stem)
+            stem = self._default_conv_layer(stem, self.n_filters, (3, 3), w_init, b_init, batch_norm=True)
 
         with tf.variable_scope('residual1'):
             residual = stem
@@ -128,9 +125,9 @@ class CtcOcr:
 
         with tf.variable_scope('conv'):
             conv = self._default_conv_layer(residual, self.n_filters * 2, (1, 1), w_init, b_init)
-            conv = self._default_conv_layer(conv, self.n_filters * 4, (1, 1), w_init, b_init)
-            conv = self._default_max_pool(conv, (3, 1), (1, 1))
-            conv = self._default_conv_layer(conv, self.n_filters * 8, (1, 1), w_init, b_init)
+            conv = self._default_max_pool(conv)
+            conv = self._default_conv_layer(conv, self.n_filters * 4, (1, 1), w_init, b_init, batch_norm=True)
+            conv = self._default_conv_layer(conv, self.n_filters * 8, (1, 1), w_init, b_init, batch_norm=True)
 
         return conv
 

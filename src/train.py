@@ -22,7 +22,8 @@ def load_data(img_path, height=64):
 
         if isfile(path) and 'jpg' in path:
             img = cv2.imread(path)
-            img = preprocess_image(img, height)
+            # img = preprocess_image(img, height)
+            img = resize_image(img, height)
 
             label = re.match(r'.*[_](.*)\.jpg', f).group(1)
             # label = label.replace('-', ' ')
