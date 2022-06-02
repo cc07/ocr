@@ -20,7 +20,7 @@ graphene-pynamodb==1.0.0
 graphql-core==1.1
 graphql-relay==0.4.5
 grpcio==1.11.0
-html5lib==0.9999999
+html5lib==0.99999999
 idna==2.6
 imgaug==0.2.5
 ipykernel==4.8.2
